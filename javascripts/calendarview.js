@@ -17,38 +17,38 @@
 //   www.dynarch.com/projects/calendar
 //
 
-var Calendar = Class.create()
+var Calendar = Class.create();
 
 //------------------------------------------------------------------------------
 // Constants
 //------------------------------------------------------------------------------
 
-Calendar.VERSION = '1.2'
+Calendar.VERSION = '1.2';
 
 Calendar.DAY_NAMES = new Array(
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
   'Sunday'
-)
+);
 
 Calendar.SHORT_DAY_NAMES = new Array(
   'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S'
-)
+);
 
 Calendar.MONTH_NAMES = new Array(
   'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August',
   'September', 'October', 'November', 'December'
-)
+);
 
 Calendar.SHORT_MONTH_NAMES = new Array(
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov',
   'Dec' 
-)
+);
 
-Calendar.NAV_PREVIOUS_YEAR  = -2
-Calendar.NAV_PREVIOUS_MONTH = -1
-Calendar.NAV_TODAY          =  0
-Calendar.NAV_NEXT_MONTH     =  1
-Calendar.NAV_NEXT_YEAR      =  2
+Calendar.NAV_PREVIOUS_YEAR  = -2;
+Calendar.NAV_PREVIOUS_MONTH = -1;
+Calendar.NAV_TODAY          =  0;
+Calendar.NAV_NEXT_MONTH     =  1;
+Calendar.NAV_NEXT_YEAR      =  2;
 
 //------------------------------------------------------------------------------
 // Static Methods
@@ -59,179 +59,180 @@ Calendar.NAV_NEXT_YEAR      =  2
 // calendar this function closes it.
 Calendar._checkCalendar = function(event) {
   if (!window._popupCalendar)
-    return false
+    return false;
   if (Element.descendantOf(Event.element(event), window._popupCalendar.container))
-    return
-  window._popupCalendar.callCloseHandler()
-  return Event.stop(event)
-}
+    return null;
+  window._popupCalendar.callCloseHandler();
+  return Event.stop(event);
+};
 
 //------------------------------------------------------------------------------
 // Event Handlers
 //------------------------------------------------------------------------------
 
-Calendar.handleMouseDownEvent = function(event)
-{
-  Event.observe(document, 'mouseup', Calendar.handleMouseUpEvent)
-  Event.stop(event)
-}
+Calendar.handleMouseDownEvent = function(event) {
+  Event.observe(document, 'mouseup', Calendar.handleMouseUpEvent);
+  Event.stop(event);
+};
 
 // XXX I am not happy with how clicks of different actions are handled. Need to
 // clean this up!
-Calendar.handleMouseUpEvent = function(event)
-{
-  var el        = Event.element(event)
-  var calendar  = el.calendar
-  var isNewDate = false
+Calendar.handleMouseUpEvent = function(event) {
+  var el        = Event.element(event),
+      calendar  = el.calendar,
+      isNewDate = false;
 
   // If the element that was clicked on does not have an associated Calendar
   // object, return as we have nothing to do.
-  if (!calendar) return false
+  if (!calendar) return false;
 
   // Clicked on a day
-  if (typeof el.navAction == 'undefined')
-  {
+  if (typeof el.navAction == 'undefined') {
     if (calendar.currentDateElement) {
-      Element.removeClassName(calendar.currentDateElement, 'selected')
-      Element.addClassName(el, 'selected')
-      calendar.shouldClose = (calendar.currentDateElement == el)
-      if (!calendar.shouldClose) calendar.currentDateElement = el
+      Element.removeClassName(calendar.currentDateElement, 'selected');
+      Element.addClassName(el, 'selected');
+      calendar.shouldClose = (calendar.currentDateElement == el);
+      if (!calendar.shouldClose) calendar.currentDateElement = el;
     }
-    calendar.date.setDateOnly(el.date)
-    isNewDate = true
-    calendar.shouldClose = !el.hasClassName('otherDay')
-    var isOtherMonth     = !calendar.shouldClose
-    if (isOtherMonth) calendar.update(calendar.date)
+    calendar.date.setDateOnly(el.date);
+    isNewDate = true;
+    calendar.shouldClose = !el.hasClassName('otherDay');
+    var isOtherMonth     = !calendar.shouldClose;
+    if (isOtherMonth) calendar.update(calendar.date);
   }
 
   // Clicked on an action button
-  else
-  {
-    var date = new Date(calendar.date)
+  else {
+    var date = new Date(calendar.date);
 
     if (el.navAction == Calendar.NAV_TODAY)
-      date.setDateOnly(new Date())
+      date.setDateOnly(new Date());
 
-    var year = date.getFullYear()
-    var mon = date.getMonth()
+    var year  = date.getFullYear(),
+        mon   = date.getMonth();
     function setMonth(m) {
-      var day = date.getDate()
-      var max = date.getMonthDays(m)
-      if (day > max) date.setDate(max)
-      date.setMonth(m)
+      var day = date.getDate(),
+          max = date.getMonthDays(m);
+      if (day > max) {
+        date.setDate(max);
+      };
+      date.setMonth(m);
     }
     switch (el.navAction) {
 
       // Previous Year
       case Calendar.NAV_PREVIOUS_YEAR:
         if (year > calendar.minYear)
-          date.setFullYear(year - 1)
-        break
+          date.setFullYear(year - 1);
+        break;
 
       // Previous Month
       case Calendar.NAV_PREVIOUS_MONTH:
         if (mon > 0) {
-          setMonth(mon - 1)
+          setMonth(mon - 1);
         }
         else if (year-- > calendar.minYear) {
-          date.setFullYear(year)
-          setMonth(11)
+          date.setFullYear(year);
+          setMonth(11);
         }
-        break
+        break;
 
       // Today
       case Calendar.NAV_TODAY:
-        break
+        break;
 
       // Next Month
       case Calendar.NAV_NEXT_MONTH:
         if (mon < 11) {
-          setMonth(mon + 1)
+          setMonth(mon + 1);
         }
         else if (year < calendar.maxYear) {
-          date.setFullYear(year + 1)
-          setMonth(0)
+          date.setFullYear(year + 1);
+          setMonth(0);
         }
-        break
+        break;
 
       // Next Year
       case Calendar.NAV_NEXT_YEAR:
         if (year < calendar.maxYear)
-          date.setFullYear(year + 1)
-        break
+          date.setFullYear(year + 1);
+        break;
 
     }
 
     if (!date.equalsTo(calendar.date)) {
-      calendar.setDate(date)
-      isNewDate = true
+      calendar.setDate(date);
+      isNewDate = true;
     } else if (el.navAction == 0) {
-      isNewDate = (calendar.shouldClose = true)
+      isNewDate = (calendar.shouldClose = true);
     }
   }
 
-  if (isNewDate) event && calendar.callSelectHandler()
-  if (calendar.shouldClose) event && calendar.callCloseHandler()
+  if (isNewDate) event && calendar.callSelectHandler();
+  if (calendar.shouldClose) event && calendar.callCloseHandler();
 
-  Event.stopObserving(document, 'mouseup', Calendar.handleMouseUpEvent)
+  Event.stopObserving(document, 'mouseup', Calendar.handleMouseUpEvent);
 
-  return Event.stop(event)
-}
+  return Event.stop(event);
+};
 
-Calendar.defaultSelectHandler = function(calendar)
-{
-  if (!calendar.dateField) return false
+Calendar.defaultSelectHandler = function(calendar) {
+  if (!calendar.dateField) { 
+    return false;
+  }
 
   // Update dateField value
-  if (calendar.dateField.tagName == 'DIV')
-    Element.update(calendar.dateField, calendar.date.print(calendar.dateFormat))
-  else if (calendar.dateField.tagName == 'INPUT') {
-    calendar.dateField.value = calendar.date.print(calendar.dateFormat) }
+  if (calendar.dateField.tagName == 'DIV') {
+    Element.update(calendar.dateField, calendar.date.print(calendar.dateFormat));
+  } else if (calendar.dateField.tagName == 'INPUT') {
+    calendar.dateField.value = calendar.date.print(calendar.dateFormat); 
+  };
 
   // Trigger the onchange callback on the dateField, if one has been defined
-  if (typeof calendar.dateField.onchange == 'function')
-    calendar.dateField.onchange()
-
+  if (typeof calendar.dateField.onchange == 'function') {
+    calendar.dateField.onchange();
+  }
   // Call the close handler, if necessary
-  if (calendar.shouldClose) calendar.callCloseHandler()
-}
+  if (calendar.shouldClose) {
+    calendar.callCloseHandler();
+  }
+  return true;
+};
 
-Calendar.defaultCloseHandler = function(calendar)
-{
-  calendar.hide()
-}
-
+Calendar.defaultCloseHandler = function(calendar) {
+  calendar.hide();
+};
 
 //------------------------------------------------------------------------------
 // Calendar Setup
 //------------------------------------------------------------------------------
 
-Calendar.setup = function(params)
-{
-
+Calendar.setup = function(params) {
   function param_default(name, def) {
-    if (!params[name]) params[name] = def
+    if (!params[name]) {
+      params[name] = def;
+    }
   }
 
-  param_default('dateField', null)
-  param_default('triggerElement', null)
-  param_default('parentElement', null)
-  param_default('selectHandler',  null)
-  param_default('closeHandler', null)
+  param_default('dateField',      null);
+  param_default('triggerElement', null);
+  param_default('parentElement',  null);
+  param_default('selectHandler',  null);
+  param_default('closeHandler',   null);
 
   // In-Page Calendar
-  if (params.parentElement)
-  {
-    var calendar = new Calendar(params.parentElement)
-    calendar.setSelectHandler(params.selectHandler || Calendar.defaultSelectHandler)
+  if (params.parentElement) {
+    var calendar = new Calendar(params.parentElement);
+    calendar.setSelectHandler(params.selectHandler || Calendar.defaultSelectHandler);
     if (params.dateFormat)
-      calendar.setDateFormat(params.dateFormat)
+      calendar.setDateFormat(params.dateFormat);
     if (params.dateField) {
-      calendar.setDateField(params.dateField)
-      calendar.parseDate(calendar.dateField.innerHTML || calendar.dateField.value)
+      calendar.setDateField(params.dateField);
+      calendar.parseDate(calendar.dateField.innerHTML || calendar.dateField.value);
     }
-    calendar.show()
-    return calendar
+
+    calendar.show();
+    return calendar;
   }
 
   // Popup Calendars
@@ -239,27 +240,28 @@ Calendar.setup = function(params)
   // XXX There is significant optimization to be had here by creating the
   // calendar and storing it on the page, but then you will have issues with
   // multiple calendars on the same page.
-  else
-  {
-    var triggerElement = $(params.triggerElement || params.dateField)
+  else {
+    var triggerElement = $(params.triggerElement || params.dateField);
     triggerElement.onclick = function() {
-      var calendar = new Calendar()
-      calendar.setSelectHandler(params.selectHandler || Calendar.defaultSelectHandler)
-      calendar.setCloseHandler(params.closeHandler || Calendar.defaultCloseHandler)
-      if (params.dateFormat)
-        calendar.setDateFormat(params.dateFormat)
-      if (params.dateField) {
-        calendar.setDateField(params.dateField)
-        calendar.parseDate(calendar.dateField.innerHTML || calendar.dateField.value)
+      var calendar = new Calendar();
+      calendar.setSelectHandler(params.selectHandler || Calendar.defaultSelectHandler);
+      calendar.setCloseHandler(params.closeHandler   || Calendar.defaultCloseHandler);
+      if (params.dateFormat) {
+        calendar.setDateFormat(params.dateFormat);
       }
-      if (params.dateField)
-        Date.parseDate(calendar.dateField.value || calendar.dateField.innerHTML, calendar.dateFormat)
-      calendar.showAtElement(triggerElement)
-      return calendar
-    }
+      if (params.dateField) {
+        calendar.setDateField(params.dateField);
+        calendar.parseDate(calendar.dateField.innerHTML || calendar.dateField.value);
+      }
+      if (params.dateField){
+        Date.parseDate(calendar.dateField.value || calendar.dateField.innerHTML, calendar.dateFormat);
+      }
+      calendar.showAtElement(triggerElement);
+      return calendar;
+    };
   }
-
-}
+  return true;
+};
 
 
 
@@ -270,270 +272,249 @@ Calendar.setup = function(params)
 Calendar.prototype = {
 
   // The HTML Container Element
-  container: null,
+  container:          null,
 
   // Callbacks
-  selectHandler: null,
-  closeHandler: null,
+  selectHandler:      null,
+  closeHandler:       null,
 
   // Configuration
-  minYear: 1900,
-  maxYear: 2100,
-  dateFormat: '%Y-%m-%d',
+  minYear:            1900,
+  maxYear:            2100,
+  dateFormat:         '%Y-%m-%d',
 
   // Dates
-  date: new Date(),
+  date:               new Date(),
   currentDateElement: null,
 
   // Status
-  shouldClose: false,
-  isPopup: true,
+  shouldClose:        false,
+  isPopup:            true,
 
-  dateField: null,
+  dateField:          null,
 
 
   //----------------------------------------------------------------------------
   // Initialize
   //----------------------------------------------------------------------------
 
-  initialize: function(parent)
-  {
+  initialize: function(parent) {
     if (parent)
-      this.create($(parent))
+      this.create($(parent));
     else
-      this.create()
+      this.create();
   },
-
-
 
   //----------------------------------------------------------------------------
   // Update / (Re)initialize Calendar
   //----------------------------------------------------------------------------
 
-  update: function(date)
-  {
-    var calendar   = this
-    var today      = new Date()
-    var thisYear   = today.getFullYear()
-    var thisMonth  = today.getMonth()
-    var thisDay    = today.getDate()
-    var month      = date.getMonth();
-    var dayOfMonth = date.getDate();
+  update: function(date) {
+    var calendar   = this,
+        today      = new Date(),
+        thisYear   = today.getFullYear(),
+        thisMonth  = today.getMonth(),
+        thisDay    = today.getDate(),
+        month      = date.getMonth(),
+        dayOfMonth = date.getDate();
 
     // Ensure date is within the defined range
     if (date.getFullYear() < this.minYear)
-      date.setFullYear(this.minYear)
+      date.setFullYear(this.minYear);
     else if (date.getFullYear() > this.maxYear)
-      date.setFullYear(this.maxYear)
+      date.setFullYear(this.maxYear);
 
-    this.date = new Date(date)
+    this.date = new Date(date);
 
     // Calculate the first day to display (including the previous month)
-    date.setDate(1)
-    date.setDate(-(date.getDay()) + 1)
+    date.setDate(1);
+    date.setDate(-(date.getDay()) + 1);
 
     // Fill in the days of the month
     Element.getElementsBySelector(this.container, 'tbody tr').each(
       function(row, i) {
-        var rowHasDays = false
+        var rowHasDays = false;
         row.immediateDescendants().each(
           function(cell, j) {
-            var day            = date.getDate()
-            var dayOfWeek      = date.getDay()
-            var isCurrentMonth = (date.getMonth() == month)
+            var day            = date.getDate(),
+                dayOfWeek      = date.getDay(),
+                isCurrentMonth = date.getMonth() == month;
 
             // Reset classes on the cell
-            cell.className = ''
-            cell.date = new Date(date)
-            cell.update(day)
+            cell.className = '';
+            cell.date      = new Date(date);
+            cell.update(day);
 
             // Account for days of the month other than the current month
             if (!isCurrentMonth)
-              cell.addClassName('otherDay')
+              cell.addClassName('otherDay');
             else
-              rowHasDays = true
+              rowHasDays = true;
 
             // Ensure the current day is selected
             if (isCurrentMonth && day == dayOfMonth) {
-              cell.addClassName('selected')
-              calendar.currentDateElement = cell
+              cell.addClassName('selected');
+              calendar.currentDateElement = cell;
             }
 
             // Today
             if (date.getFullYear() == thisYear && date.getMonth() == thisMonth && day == thisDay)
-              cell.addClassName('today')
+              cell.addClassName('today');
 
             // Weekend
             if ([0, 6].indexOf(dayOfWeek) != -1)
-              cell.addClassName('weekend')
+              cell.addClassName('weekend');
 
             // Set the date to tommorrow
-            date.setDate(day + 1)
+            date.setDate(day + 1);
           }
-        )
+        );
         // Hide the extra row if it contains only days from another month
-        !rowHasDays ? row.hide() : row.show()
+        !rowHasDays ? row.hide() : row.show();
       }
-    )
+    );
 
     this.container.getElementsBySelector('td.title')[0].update(
       Calendar.MONTH_NAMES[month] + ' ' + this.date.getFullYear()
-    )
+    );
   },
-
-
 
   //----------------------------------------------------------------------------
   // Create/Draw the Calendar HTML Elements
   //----------------------------------------------------------------------------
 
-  create: function(parent)
-  {
+  create: function(parent) {
 
     // If no parent was specified, assume that we are creating a popup calendar.
     if (!parent) {
-      parent = document.getElementsByTagName('body')[0]
-      this.isPopup = true
+      parent = document.getElementsByTagName('body')[0];
+      this.isPopup = true;
     } else {
-      this.isPopup = false
+      this.isPopup = false;
     }
 
-    // Calendar Table
-    var table = new Element('table')
+    var table = new Element('table'), // Calendar Table
+        thead = new Element('thead'), // Calendar Header
+        row   = new Element('tr'),     // Title Placeholder
+        cell  = new Element('td', { colSpan: 7 } );
 
-    // Calendar Header
-    var thead = new Element('thead')
-    table.appendChild(thead)
+    table.appendChild(thead);
 
-    // Title Placeholder
-    var row  = new Element('tr')
-    var cell = new Element('td', { colSpan: 7 } )
-    cell.addClassName('title')
-    row.appendChild(cell)
-    thead.appendChild(row)
+    cell.addClassName('title');
+    row.appendChild(cell);
+    thead.appendChild(row);
 
     // Calendar Navigation
-    row = new Element('tr')
-    this._drawButtonCell(row, '&#x00ab;', 1, Calendar.NAV_PREVIOUS_YEAR)
-    this._drawButtonCell(row, '&#x2039;', 1, Calendar.NAV_PREVIOUS_MONTH)
-    this._drawButtonCell(row, 'Today',    3, Calendar.NAV_TODAY)
-    this._drawButtonCell(row, '&#x203a;', 1, Calendar.NAV_NEXT_MONTH)
-    this._drawButtonCell(row, '&#x00bb;', 1, Calendar.NAV_NEXT_YEAR)
-    thead.appendChild(row)
+    row = new Element('tr');
+    this._drawButtonCell(row, '&#x00ab;', 1, Calendar.NAV_PREVIOUS_YEAR);
+    this._drawButtonCell(row, '&#x2039;', 1, Calendar.NAV_PREVIOUS_MONTH);
+    this._drawButtonCell(row, 'Today',    3, Calendar.NAV_TODAY);
+    this._drawButtonCell(row, '&#x203a;', 1, Calendar.NAV_NEXT_MONTH);
+    this._drawButtonCell(row, '&#x00bb;', 1, Calendar.NAV_NEXT_YEAR);
+    thead.appendChild(row);
 
     // Day Names
-    row = new Element('tr')
+    row = new Element('tr');
     for (var i = 0; i < 7; ++i) {
-      cell = new Element('th').update(Calendar.SHORT_DAY_NAMES[i])
+      cell = new Element('th').update(Calendar.SHORT_DAY_NAMES[i]);
       if (i == 0 || i == 6)
-        cell.addClassName('weekend')
-      row.appendChild(cell)
+        cell.addClassName('weekend');
+      row.appendChild(cell);
     }
-    thead.appendChild(row)
+    thead.appendChild(row);
 
     // Calendar Days
-    var tbody = table.appendChild(new Element('tbody'))
+    var tbody = table.appendChild(new Element('tbody'));
     for (i = 6; i > 0; --i) {
-      row = tbody.appendChild(new Element('tr'))
-      row.addClassName('days')
+      row = tbody.appendChild(new Element('tr'));
+      row.addClassName('days');
       for (var j = 7; j > 0; --j) {
-        cell = row.appendChild(new Element('td'))
-        cell.calendar = this
+        cell = row.appendChild(new Element('td'));
+        cell.calendar = this;
       }
     }
 
     // Calendar Container (div)
-    this.container = new Element('div')
-    this.container.addClassName('calendar')
+    this.container = new Element('div');
+    this.container.addClassName('calendar');
     if (this.isPopup) {
-      this.container.setStyle({ position: 'absolute', display: 'none' })
-      this.container.addClassName('popup')
+      this.container.setStyle({ position: 'absolute', display: 'none' });
+      this.container.addClassName('popup');
     }
-    this.container.appendChild(table)
+    this.container.appendChild(table);
 
     // Initialize Calendar
-    this.update(this.date)
+    this.update(this.date);
 
     // Observe the container for mousedown events
-    Event.observe(this.container, 'mousedown', Calendar.handleMouseDownEvent)
+    Event.observe(this.container, 'mousedown', Calendar.handleMouseDownEvent);
 
     // Append to parent element
-    parent.appendChild(this.container)
+    parent.appendChild(this.container);
 
   },
 
-  _drawButtonCell: function(parent, text, colSpan, navAction)
-  {
-    var cell          = new Element('td')
-    if (colSpan > 1) cell.colSpan = colSpan
-    cell.className    = 'button'
-    cell.calendar     = this
-    cell.navAction    = navAction
-    cell.innerHTML    = text
-    cell.unselectable = 'on' // IE
-    parent.appendChild(cell)
-    return cell
+  _drawButtonCell: function(parent, text, colSpan, navAction) {
+    var cell          = new Element('td');
+    if (colSpan > 1) {
+      cell.colSpan = colSpan;
+    };
+    cell.className    = 'button';
+    cell.calendar     = this;
+    cell.navAction    = navAction;
+    cell.innerHTML    = text;
+    cell.unselectable = 'on'; // IE
+    parent.appendChild(cell);
+    return cell;
   },
-
-
 
   //------------------------------------------------------------------------------
   // Callbacks
   //------------------------------------------------------------------------------
 
   // Calls the Select Handler (if defined)
-  callSelectHandler: function()
-  {
+  callSelectHandler: function() {
     if (this.selectHandler)
-      this.selectHandler(this, this.date.print(this.dateFormat))
+      this.selectHandler(this, this.date.print(this.dateFormat));
   },
 
   // Calls the Close Handler (if defined)
-  callCloseHandler: function()
-  {
+  callCloseHandler: function() {
     if (this.closeHandler)
-      this.closeHandler(this)
+      this.closeHandler(this);
   },
-
-
 
   //------------------------------------------------------------------------------
   // Calendar Display Functions
   //------------------------------------------------------------------------------
 
   // Shows the Calendar
-  show: function()
-  {
-    this.container.show()
+  show: function() {
+    this.container.show();
     if (this.isPopup) {
-      window._popupCalendar = this
-      Event.observe(document, 'mousedown', Calendar._checkCalendar)
+      window._popupCalendar = this;
+      Event.observe(document, 'mousedown', Calendar._checkCalendar);
     }
   },
 
   // Shows the calendar at the given absolute position
-  showAt: function (x, y)
-  {
-    this.container.setStyle({ left: x + 'px', top: y + 'px' })
-    this.show()
+  showAt: function (x, y) {
+    this.container.setStyle({ left: x + 'px', top: y + 'px' });
+    this.show();
   },
 
   // Shows the Calendar at the coordinates of the provided element
-  showAtElement: function(element)
-  {
-    var pos = Position.cumulativeOffset(element)
-    this.showAt(pos[0], pos[1])
+  showAtElement: function(element) {
+    var pos = Position.cumulativeOffset(element);
+    this.showAt(pos[0], pos[1]);
   },
 
   // Hides the Calendar
-  hide: function()
-  {
+  hide: function() {
     if (this.isPopup)
-      Event.stopObserving(document, 'mousedown', Calendar._checkCalendar)
-    this.container.hide()
+      Event.stopObserving(document, 'mousedown', Calendar._checkCalendar);
+    this.container.hide();
   },
-
-
 
   //------------------------------------------------------------------------------
   // Miscellaneous
@@ -541,83 +522,46 @@ Calendar.prototype = {
 
   // Tries to identify the date represented in a string.  If successful it also
   // calls this.setDate which moves the calendar to the given date.
-  parseDate: function(str, format)
-  {
+  parseDate: function(str, format) {
     if (!format)
-      format = this.dateFormat
-    this.setDate(Date.parseDate(str, format))
+      format = this.dateFormat;
+    this.setDate(Date.parseDate(str, format));
   },
-
-
 
   //------------------------------------------------------------------------------
   // Getters/Setters
   //------------------------------------------------------------------------------
 
-  setSelectHandler: function(selectHandler)
-  {
-    this.selectHandler = selectHandler
+  setSelectHandler: function(selectHandler) {
+    this.selectHandler = selectHandler;
   },
 
-  setCloseHandler: function(closeHandler)
-  {
-    this.closeHandler = closeHandler
+  setCloseHandler: function(closeHandler) {
+    this.closeHandler  = closeHandler;
   },
 
-  setDate: function(date)
-  {
+  setDate: function(date) {
     if (!date.equalsTo(this.date))
-      this.update(date)
+      this.update(date);
   },
 
-  setDateFormat: function(format)
-  {
-    this.dateFormat = format
+  setDateFormat: function(format) {
+    this.dateFormat = format;
   },
 
-  setDateField: function(field)
-  {
-    this.dateField = $(field)
+  setDateField: function(field) {
+    this.dateField  = $(field);
   },
 
-  setRange: function(minYear, maxYear)
-  {
-    this.minYear = minYear
-    this.maxYear = maxYear
+  setRange: function(minYear, maxYear) {
+    this.minYear = minYear;
+    this.maxYear = maxYear;
   }
 
-}
+};
 
 // global object that remembers the calendar
-window._popupCalendar = null
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+window._popupCalendar = null;
 
 //==============================================================================
 //
@@ -630,24 +574,24 @@ window._popupCalendar = null
 //
 //==============================================================================
 
-Date.DAYS_IN_MONTH = new Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-Date.SECOND        = 1000 /* milliseconds */
-Date.MINUTE        = 60 * Date.SECOND
-Date.HOUR          = 60 * Date.MINUTE
-Date.DAY           = 24 * Date.HOUR
-Date.WEEK          =  7 * Date.DAY
+Date.DAYS_IN_MONTH = new Array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+Date.SECOND        = 1000; /* milliseconds */
+Date.MINUTE        = 60 * Date.SECOND;
+Date.HOUR          = 60 * Date.MINUTE;
+Date.DAY           = 24 * Date.HOUR;
+Date.WEEK          =  7 * Date.DAY;
 
 // Parses Date
 Date.parseDate = function(str, fmt) {
-  var today = new Date();
-  var y     = 0;
-  var m     = -1;
-  var d     = 0;
-  var a     = str.split(/\W+/);
-  var b     = fmt.match(/%./g);
-  var i     = 0, j = 0;
-  var hr    = 0;
-  var min   = 0;
+  var today = new Date(),
+      y     = 0,
+      m     = -1,
+      d     = 0,
+      a     = str.split(/\W+/),
+      b     = fmt.match(/%./g),
+      i     = 0, j = 0,
+      hr    = 0,
+      min   = 0;
 
   for (i = 0; i < a.length; ++i) {
     if (!a[i]) continue;
@@ -691,10 +635,10 @@ Date.parseDate = function(str, fmt) {
         break;
     }
   }
-  if (isNaN(y)) y = today.getFullYear();
-  if (isNaN(m)) m = today.getMonth();
-  if (isNaN(d)) d = today.getDate();
-  if (isNaN(hr)) hr = today.getHours();
+  if (isNaN(y))     y = today.getFullYear();
+  if (isNaN(m))     m = today.getMonth();
+  if (isNaN(d))     d = today.getDate();
+  if (isNaN(hr))   hr = today.getHours();
   if (isNaN(min)) min = today.getMinutes();
   if (y != 0 && m != -1 && d != 0)
     return new Date(y, m, d, hr, min, 0);
@@ -707,7 +651,7 @@ Date.parseDate = function(str, fmt) {
       }
       if (t != -1) {
         if (m != -1) {
-          d = m+1;
+          d = m + 1;
         }
         m = t;
       }
@@ -729,29 +673,29 @@ Date.parseDate = function(str, fmt) {
 
 // Returns the number of days in the current month
 Date.prototype.getMonthDays = function(month) {
-  var year = this.getFullYear()
+  var year = this.getFullYear();
   if (typeof month == "undefined")
-    month = this.getMonth()
+    month = this.getMonth();
   if (((0 == (year % 4)) && ( (0 != (year % 100)) || (0 == (year % 400)))) && month == 1)
-    return 29
+    return 29;
   else
-    return Date.DAYS_IN_MONTH[month]
+    return Date.DAYS_IN_MONTH[month];
 };
 
 // Returns the number of day in the year
 Date.prototype.getDayOfYear = function() {
-  var now = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0);
-  var then = new Date(this.getFullYear(), 0, 0, 0, 0, 0);
-  var time = now - then;
+  var now  = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0),
+      then = new Date(this.getFullYear(), 0, 0, 0, 0, 0),
+      time = now - then;
   return Math.floor(time / Date.DAY);
 };
 
 /** Returns the number of the week in year, as defined in ISO 8601. */
 Date.prototype.getWeekNumber = function() {
-  var d = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0);
-  var DoW = d.getDay();
+  var d   = new Date(this.getFullYear(), this.getMonth(), this.getDate(), 0, 0, 0),
+      DoW = d.getDay();
   d.setDate(d.getDate() - (DoW + 6) % 7 + 3); // Nearest Thu
-  var ms = d.valueOf(); // GMT
+  var ms  = d.valueOf(); // GMT
   d.setMonth(0);
   d.setDate(4); // Thu in Week 1
   return Math.round((ms - d.valueOf()) / (7 * 864e5)) + 1;
@@ -760,9 +704,9 @@ Date.prototype.getWeekNumber = function() {
 /** Checks date and time equality */
 Date.prototype.equalsTo = function(date) {
   return ((this.getFullYear() == date.getFullYear()) &&
-   (this.getMonth() == date.getMonth()) &&
-   (this.getDate() == date.getDate()) &&
-   (this.getHours() == date.getHours()) &&
+   (this.getMonth()   == date.getMonth()) &&
+   (this.getDate()    == date.getDate()) &&
+   (this.getHours()   == date.getHours()) &&
    (this.getMinutes() == date.getMinutes()));
 };
 
@@ -777,20 +721,20 @@ Date.prototype.setDateOnly = function(date) {
 
 /** Prints the date in a string according to the given format. */
 Date.prototype.print = function (str) {
-  var m = this.getMonth();
-  var d = this.getDate();
-  var y = this.getFullYear();
-  var wn = this.getWeekNumber();
-  var w = this.getDay();
-  var s = {};
-  var hr = this.getHours();
-  var pm = (hr >= 12);
-  var ir = (pm) ? (hr - 12) : hr;
-  var dy = this.getDayOfYear();
-  if (ir == 0)
-    ir = 12;
-  var min = this.getMinutes();
-  var sec = this.getSeconds();
+  var m   = this.getMonth(),
+      d   = this.getDate(),
+      y   = this.getFullYear(),
+      wn  = this.getWeekNumber(),
+      w   = this.getDay(),
+      s   = {},
+      hr  = this.getHours(),
+      pm  = (hr >= 12),
+      ir  = (pm) ? (hr - 12) : hr,
+      dy  = this.getDayOfYear();
+  if (ir  == 0)
+       ir = 12;
+  var min = this.getMinutes(),
+      sec = this.getSeconds();
   s["%a"] = Calendar.SHORT_DAY_NAMES[w]; // abbreviated weekday name [FIXME: I18N]
   s["%A"] = Calendar.DAY_NAMES[w]; // full weekday name
   s["%b"] = Calendar.SHORT_MONTH_NAMES[m]; // abbreviated month name [FIXME: I18N]
@@ -799,14 +743,15 @@ Date.prototype.print = function (str) {
   s["%C"] = 1 + Math.floor(y / 100); // the century number
   s["%d"] = (d < 10) ? ("0" + d) : d; // the day of the month (range 01 to 31)
   s["%e"] = d; // the day of the month (range 1 to 31)
+  s["%O"] = d.ordinalize(); // ordinalized day of the month (range 1 to 31). displayed as ordinal: 1st, 2nd, 3rd, 4th ... 21st ... 30th, 31st
   // FIXME: %D : american date style: %m/%d/%y
   // FIXME: %E, %F, %G, %g, %h (man strftime)
-  s["%H"] = (hr < 10) ? ("0" + hr) : hr; // hour, range 00 to 23 (24h format)
-  s["%I"] = (ir < 10) ? ("0" + ir) : ir; // hour, range 01 to 12 (12h format)
+  s["%H"] = (hr < 10)  ? ("0" + hr) : hr; // hour, range 00 to 23 (24h format)
+  s["%I"] = (ir < 10)  ? ("0" + ir) : ir; // hour, range 01 to 12 (12h format)
   s["%j"] = (dy < 100) ? ((dy < 10) ? ("00" + dy) : ("0" + dy)) : dy; // day of the year (range 001 to 366)
   s["%k"] = hr;   // hour, range 0 to 23 (24h format)
   s["%l"] = ir;   // hour, range 1 to 12 (12h format)
-  s["%m"] = (m < 9) ? ("0" + (1+m)) : (1+m); // month, range 01 to 12
+  s["%m"] = (m < 9) ? ("0" + (1 + m)) : (1 + m); // month, range 01 to 12
   s["%M"] = (min < 10) ? ("0" + min) : min; // minute, range 00 to 59
   s["%n"] = "\n";   // a newline character
   s["%p"] = pm ? "PM" : "AM";
@@ -826,14 +771,22 @@ Date.prototype.print = function (str) {
   s["%Y"] = y;    // year with the century
   s["%%"] = "%";    // a literal '%' character
 
-  return str.gsub(/%./, function(match) { return s[match] || match });
+  return str.gsub(/%./, function(match) { return s[match] || match; });
 };
 
 Date.prototype.__msh_oldSetFullYear = Date.prototype.setFullYear;
 Date.prototype.setFullYear = function(y) {
   var d = new Date(this);
   d.__msh_oldSetFullYear(y);
-  if (d.getMonth() != this.getMonth())
+  if (d.getMonth() != this.getMonth()){
     this.setDate(28);
+  }
   this.__msh_oldSetFullYear(y);
-}
+};
+
+Number.prototype.ordinalize = function() {
+	var n    = this % 100,
+	    suff = ["th", "st", "nd", "rd", "th"], // suff for suffix
+	    ord  = n < 21 ? (n < 4 ? suff[n] : suff[0]) : (n % 10 > 4 ? suff[0] : suff[n % 10]);
+	return this + ord;
+};
