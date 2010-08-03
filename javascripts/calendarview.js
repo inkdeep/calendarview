@@ -598,6 +598,7 @@ Date.parseDate = function(str, fmt) {
     switch (b[i]) {
       case "%d":
       case "%e":
+      case "%O":
         d = parseInt(a[i], 10);
         break;
       case "%m":
